@@ -1,6 +1,6 @@
 ```
 in this fork you **should** be able to just build procmon as below on arch linux
-BUT FIRST compile the sysinternalsEBPF from the original github repo (i swear its like 3 or 4 commands)
+BUT FIRST compile the sysinternalsEBPF from the original github repo: https://github.com/microsoft/SysinternalsEBPF/blob/main/BUILD.md (i swear its just 3 or 4 commands)
 
 
 ```
@@ -10,18 +10,6 @@ BUT FIRST compile the sysinternalsEBPF from the original github repo (i swear it
 Process Monitor (Procmon) is a Linux reimagining of the classic Procmon tool from the Sysinternals suite of tools for Windows. Procmon provides a convenient and efficient way for Linux developers to trace the syscall activity on the system.
 
 ![Procmon in use](procmon.gif "Procmon in use")
-
-# Installation & Usage
-
-## Requirements
-
-- OS: Ubuntu 18.04 lts
-- `cmake` >= 3.14 (build-time only)
-- `libsqlite3-dev` >= 3.22 (build-time only)
-
-## Install Procmon
-
-Please see installation instructions [here](INSTALL.md).
 
 ## Build Procmon
 
