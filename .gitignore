@@ -55,3 +55,12 @@ pkgbuild/
 
 # dev env
 .vscode/
+.git_1/logs
+.git_1/objects/pack
+.git_1/refs/heads
+.git_1/info
+.git_1/refs/remotes/origin
+.git_1
+.devcontainer
+.container
+.github_1
