@@ -1,6 +1,6 @@
 ```
 in this fork you **should** be able to just build procmon as below on arch linux
-BUT FIRST compile the sysinternalsEBPF from the original github repo (i swear its like 3 or 4 commands)``´
+BUT FIRST compile the sysinternalsEBPF from the original github repo (i swear its like 3 or 4 commands)
 
 
 ```
