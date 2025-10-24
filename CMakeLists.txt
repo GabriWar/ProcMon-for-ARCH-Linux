@@ -56,10 +56,21 @@ endif()
 set(PROJECT_VERSION_TWEAK 0)
 file(READ "dist/changelog" CHANGE_LOG)
 
-#
-# make ncurses a requirement
-#
-find_package(Curses REQUIRED)
+# Find ncursesw version 6
+find_library(NCURSESW6_LIBRARY NAMES ncursesw.so.6 ncursesw PATHS /usr/lib /usr/lib64 /lib /lib64)
+find_path(NCURSESW6_INCLUDE_DIR NAMES ncursesw/ncurses.h ncurses.h PATHS /usr/include /usr/local/include)
+
+if(NOT NCURSESW6_LIBRARY)
+    message(FATAL_ERROR "libncursesw.so.6 not found. Please install ncursesw version 6.")
+endif()
+if(NOT NCURSESW6_INCLUDE_DIR)
+    message(FATAL_ERROR "ncursesw.h not found. Please install ncurses-devel.")
+endif()
+
+find_library(PANELW6_LIBRARY NAMES panelw.so.6 panelw PATHS /usr/lib /usr/lib64 /lib /lib64)
+if(NOT PANELW6_LIBRARY)
+    message(FATAL_ERROR "libpanelw.so.6 not found. Please install ncursesw version 6.")
+endif()
 
 set(LD "/usr/bin/ld")
 
@@ -80,14 +91,26 @@ set(PACKAGE_NAME "procmon")
 #
 set(PROCMON_COMPRESS_MAN "procmon.1.gz")
 
+execute_process(
+    COMMAND date "+%d %b %Y"
+    OUTPUT_VARIABLE BUILD_DATE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+configure_file(
+    "${CMAKE_SOURCE_DIR}/procmon_template.1"
+    "${PROJECT_BINARY_DIR}/procmon.1"
+    @ONLY
+)
+
 add_custom_target(procmonManPageCompress ALL
                   DEPENDS ${PROJECT_BINARY_DIR}/${PROCMON_COMPRESS_MAN}
                   )
 
 add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/${PROCMON_COMPRESS_MAN}
-                   COMMAND gzip -9n -f -c "${CMAKE_SOURCE_DIR}/procmon.1" > ${PROJECT_BINARY_DIR}/${PROCMON_COMPRESS_MAN}
+                   COMMAND gzip -9n -f -c "${PROJECT_BINARY_DIR}/procmon.1" > ${PROJECT_BINARY_DIR}/${PROCMON_COMPRESS_MAN}
                    COMMENT "Compressing Procmon man page"
-                   DEPENDS "${CMAKE_SOURCE_DIR}/procmon.1"
+                   DEPENDS "${PROJECT_BINARY_DIR}/procmon.1"
                   )
 
 #
@@ -204,8 +227,8 @@ target_include_directories(procmon PUBLIC
 target_link_libraries(procmon
                       sysinternalsEBPF
                       sqlite3-static
-                      ${CURSES_LIBRARIES}
-                      -lpanel
+                      ${NCURSESW6_LIBRARY}
+                      ${PANELW6_LIBRARY}
                       elf
                       stdc++fs
                      )
@@ -286,8 +309,7 @@ if (DEBUG_K)
 endif()
 
 set(CLANG_INCLUDES
-                   -I "/usr/include"
-                   -I "/usr/include/x86_64-linux-gnu"
+                   -I "${CMAKE_SOURCE_DIR}/gnu"
                    -I "${CMAKE_SOURCE_DIR}"
                    -I "/opt/sysinternalsEBPF/ebpfKern"
                    -I "/opt/sysinternalsEBPF/libbpf"
@@ -301,7 +323,7 @@ set(EBPF_CORE_PROG_SUFFIX "_core")
 #
 function(build_ebpf ebpfsrc suffix)
     add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/${ebpfsrc}${suffix}.o
-                       COMMAND "${CLANG}" -nostdinc -isystem `gcc -print-file-name=include` ${CLANG_INCLUDES} ${CLANG_DEFINES} -O2 ${CLANG_OPTIONS} -target bpf -fno-stack-protector -c "${PROCMON_EBPF_SRC}/${ebpfsrc}.c" -o "${PROJECT_BINARY_DIR}/${ebpfsrc}${suffix}.o"
+                       COMMAND "${CLANG}" -nostdinc ${CLANG_INCLUDES} -isystem "/usr/include" -isystem "/usr/include/x86_64-linux-gnu"  -isystem `gcc -print-file-name=include` ${CLANG_DEFINES} -O2 ${CLANG_OPTIONS} -target bpf -fno-stack-protector -c "${PROCMON_EBPF_SRC}/${ebpfsrc}.c" -o "${PROJECT_BINARY_DIR}/${ebpfsrc}${suffix}.o"
                        COMMENT "Building EBPF object ${ebpfsrc}${suffix}.o"
                        DEPENDS ${PROCMON_EBPF_SRC}/${ebpfsrc}.c ${EBPF_DEPENDS}
                        )

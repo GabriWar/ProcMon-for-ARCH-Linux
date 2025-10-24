@@ -34,7 +34,7 @@
 #include <cstdint>
 
 #include <sstream>
-#include <vector>
+#include <stdint.h>
 
 struct StackTrace {
   std::vector<uint64_t> kernelIPs;
